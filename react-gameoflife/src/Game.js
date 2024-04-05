@@ -36,11 +36,52 @@ class Game extends React.Component {
         this.setState({interval: event.target.value});
     }
 
+    calculateNextState(currentBoard) {
+        const newBoard = this.makeEmptyBoard();
+    
+        for (let y = 0; y < this.rows; y++) {
+            for (let x = 0; x < this.cols; x++) {
+                const neighbors = this.countNeighbors(currentBoard, x, y);
+                const isAlive = currentBoard[y][x];
+    
+                if (isAlive && (neighbors < 2 || neighbors > 3)) {
+                    newBoard[y][x] = false; // Any live cell with fewer than two live neighbors dies, or more than three live neighbors dies
+                } else if (!isAlive && neighbors === 3) {
+                    newBoard[y][x] = true; // Any dead cell with exactly three live neighbors becomes a live cell
+                } else {
+                    newBoard[y][x] = currentBoard[y][x]; // Any live cell with two or three live neighbors lives on to the next generation
+                }
+            }
+        }
+    
+        return newBoard;
+    }
+    
+    countNeighbors(board, x, y) {
+        let count = 0;
+        const neighbors = [
+            [-1, -1], [-1, 0], [-1, 1],
+            [0, -1], [0, 1],
+            [1, -1], [1, 0], [1, 1]
+        ];
+    
+        for (const [dx, dy] of neighbors) {
+            const nx = x + dx;
+            const ny = y + dy;
+    
+            if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows) {
+                count += board[ny][nx] ? 1 : 0;
+            }
+        }
+    
+        return count;
+    }
+    
+
     runIteration() {    
-        console.log('running iteration');    
-        let newBoard = this.makeEmptyBoard();
-        
-        // TODO: Add logic for each iteration here.
+        console.log('running iteration');            
+        const newBoard = this.calculateNextState(this.board); 
+
         this.board = newBoard;    
         this.setState({ 
             cells: this.makeCells() 
